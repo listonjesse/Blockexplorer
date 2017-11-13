@@ -1,3 +1,4 @@
+require('heapdump');
 const express = require('express');
 const next = require('next');
 const proxy = require('http-proxy-middleware');
@@ -80,3 +81,18 @@ app.prepare()
   console.error(ex.stack)
   process.exit(1)
 })
+
+function generateHeapDumpAndStats() {
+  try {
+    global.gc();
+  } catch(e) {
+    console.log("You must run program with expose-gc");
+    process.exit();
+  }
+
+  var heapUsed = process.memoryUsage().heapUsed;
+  console.log("Program is using " + heapUsed + " bytes");
+  process.kill(process.pid, 'SIGUSR2');
+}
+
+setInterval(generateHeapDumpAndStats, 10000);
